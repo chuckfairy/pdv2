@@ -22,7 +22,7 @@ func! parparse#ParseParameters(line)
 			call s:ReduceParameter(l:context)
 		endif
 	endwhile
-	return l:context["stack"]
+	return l:context
 endfunc
 
 func! s:IsEndOfParamList(context)

@@ -2,7 +2,7 @@
 " ===========================
 "
 " Version: 2.0.0alpha1
-" 
+"
 " Copyright 2005-2011 by Tobias Schlitt <toby@php.net>
 "
 " Provided under the GPL (http://www.gnu.org/copyleft/gpl.html).
@@ -10,7 +10,7 @@
 " This script provides functions to generate phpDocumentor conform
 " documentation blocks for your PHP code. The script currently
 " documents:
-" 
+"
 " - Classes
 " - Methods/Functions
 " - Attributes
@@ -18,13 +18,13 @@
 " - Interfaces
 " - Traits
 "
-" All of those supporting PHP 5 syntax elements. 
+" All of those supporting PHP 5 syntax elements.
 "
-" Beside that it allows you to define default values for phpDocumentor tags 
-" like @version (I use $id$ here), @author, @license and so on. 
+" Beside that it allows you to define default values for phpDocumentor tags
+" like @version (I use $id$ here), @author, @license and so on.
 "
-" For function/method parameters and attributes, the script tries to guess the 
-" type as good as possible from PHP5 type hints or default values (array, bool, 
+" For function/method parameters and attributes, the script tries to guess the
+" type as good as possible from PHP5 type hints or default values (array, bool,
 " int, string...).
 "
 " You can use this script by mapping the function pdv#DocumentCurrentLine() to
@@ -35,8 +35,8 @@ let s:old_cpo = &cpo
 set cpo&vim
 
 "
-" Regular expressions 
-" 
+" Regular expressions
+"
 
 let s:comment = ' *\*/ *'
 
@@ -84,6 +84,8 @@ let s:regex["types"]["string"] = "['\"].*"
 let s:regex["types"]["bool"] = "\(true\|false\)"
 
 let s:regex["indent"] = '^\s*'
+
+let s:regex["return_type"] = '\(:\ \)\(\S*\)'
 
 let s:mapping = [
     \ {"regex": s:regex["function"],
@@ -295,11 +297,17 @@ func! pdv#ParseFunctionData(line)
 	let l:data = s:ParseBasicFunctionData(l:text)
 	let l:data["parameters"] = []
 
-	let l:parameters = parparse#ParseParameters(a:line)
+	let l:parameterMeta = parparse#ParseParameters(a:line)
+    let l:parameters = l:parameterMeta["stack"]
 
 	for l:param in l:parameters
 		call add(l:data["parameters"], s:ParseParameterData(l:param))
 	endfor
+
+    " Return type data
+    let l:return_line = getline(l:parameterMeta["pos"]["line"])
+	let l:return_matches = matchlist(l:return_line, s:regex["return_type"])
+    let l:data["return_type"] = l:return_matches[2]
 
 	return l:data
 endfunc
